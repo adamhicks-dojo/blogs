@@ -1,0 +1,67 @@
+asyncapi: 3.0.0
+id: 'urn:io.microcks.example.hello-microcks'
+info:
+  title: Hello Microcks API
+  version: 1.0.0
+  description: Example showing a simple pub/sub message
+defaultContentType: application/json
+channels:
+  helloEvents:
+    address: microcks/hello
+    description: Topic with Hello events
+    bindings:
+      googlepubsub:
+        schemaSettings:
+          encoding: json
+          name: projects/my-project/topics/my-topic
+    messages:
+      hello.message:
+        description: A simple Hello event message
+        traits:
+          - $ref: '#/components/messageTraits/commonHeaders'
+        payload:
+          type: object
+          properties:
+            greeting:
+              type: string
+              const: hello
+            fullName:
+              type: string
+            sentAt:
+              type: string
+        examples:
+          - name: microcks-example
+            summary: Hello to Microcks example message
+            payload:
+              greeting: hello
+              fullName: Microcks
+              sentAt: '{{now()}}'
+            headers:
+              version: 1
+          - name: random-example
+            summary: Example message with random name
+            payload:
+              greeting: hello
+              fullName: '{{randomFirstName()}}'
+              sentAt: '{{now()}}'
+            headers:
+              version: 2
+
+operations:
+  receivedHellos:
+    action: receive
+    channel:
+      $ref: '#/channels/helloEvents'
+    summary: Receive hellos
+    messages:
+      - $ref: '#/channels/helloEvents/messages/hello.message'
+components:
+  messageTraits:
+    commonHeaders:
+      headers:
+        type: object
+        properties:
+          version:
+            type: integer
+            minimum: 0
+            maximum: 10

@@ -1,0 +1,35 @@
+services:
+  microcks:
+    image: quay.io/microcks/microcks-uber:1.13.1
+    ports:
+      - "8080:8080"
+    environment:
+      - ASYNC_MINION_URL=http://microcks-async-minion:8081 # Link to Async Minion
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 3s
+
+  microcks-async-minion:
+    image: quay.io/microcks/microcks-uber-async-minion:1.13.1
+    ports:
+      - "8081:8081"
+    environment:
+      - ASYNC_PROTOCOLS=,GOOGLEPUBSUB # Enable Google Pub/Sub support
+      - MICROCKS_HOST_PORT=microcks:8080 # Link to Microcks
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8681 # Link to Pub/Sub Emulator
+    depends_on:
+      microcks:
+        condition: service_healthy
+      pubsub-emulator:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/q/health/ready"]
+      interval: 10s
+      timeout: 3s
+
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:441.0.0-emulators
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8681 --project=microcks
+    ports:
+      - "8681:8681"
