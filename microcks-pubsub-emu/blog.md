@@ -2,11 +2,15 @@
 
 **By Adam Hicks**
 
-We all love the cloud, but developing against real cloud resources can sometimes be a pain. It requires internet access, credentials management, and often incurs costs or latency that you don't want during a fast development cycle.
+![an image showing a card payment where the person making the payment is a wireframe](microcks-pubsub-emu.png)
 
-This is especially true for **Google Cloud Pub/Sub**. When building event-driven architectures, you often want to run everything locally: your app, your database, your mocks, and your message broker. While Google provides a [Pub/Sub Emulator](https://cloud.google.com/pubsub/docs/emulator) for this exact purpose, integrating it with your local development isn’t always an option.
+At Dojo, speed is critical. Not just in how fast our card machines process payments (which is milliseconds, by the way 😉), but in how fast we ship value to our customers.
 
-That’s why I recently contributed a new feature to Microcks to bridge this gap.
+Our platform relies heavily on an event-driven architecture running on Google Cloud. While this is powerful in production, it creates friction for our "inner loop" development. Developers often have to connect to real cloud resources just to test a single microservice, which means managing complex credentials, spending time waiting for cloud resources to deploy, and incurring cloud costs for every test run.
+
+We want to shift our testing left, enabling our engineers to spin up a transaction flow simulation on their laptop, completely offline. We want to publish mock payment events, verify how services consume them, and iterate instantly without waiting for a cloud deployment.
+
+However, Microcks couldn't be used with the Google Pub/Sub emulator, so I've recently contributed a new feature to Microcks to bridge this gap.
 
 ## What is the use case?
 
@@ -61,7 +65,7 @@ services:
 
   pubsub-emulator:
     image: gcr.io/google.com/cloudsdktool/cloud-sdk:441.0.0-emulators
-    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8681 --project=microcks
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8681 --project=my-project
     ports:
       - "8681:8681"
 ```
@@ -243,7 +247,7 @@ Received: {"greeting":"hello","fullName":"Merlin","sentAt":"1767870125762"}
 
 ## Summary
 
-This small but mighty change opens up a smoother local development workflow for anyone building event-driven systems with Google Cloud. By supporting the native Pub/Sub emulator, Microcks continues to be the most versatile tool for mocking and testing, no matter where your infrastructure lives—in the cloud or on your machine.
+This small but mighty change opens up a smoother local development workflow for anyone building event-driven systems with Google Cloud. For us at Dojo, it means faster iterations and happier developers. By supporting the native Pub/Sub emulator, Microcks continues to be the most versatile tool for mocking and testing, no matter where your infrastructure lives, in the cloud or on your machine.
 
 I hope this helps you streamline your testing loops! If you have any questions or feedback, feel free to reach out on GitHub.
 
